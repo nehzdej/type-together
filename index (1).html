@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeTogether — The Communal Typewriter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Special+Elite&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink-black: #1a1a1a;
+            --paper-white: #f4f1e8;
+            --ribbon-red: #c1272d;
+            --metal-gray: #4a4a4a;
+            --brass-gold: #b8860b;
+            --shadow-deep: rgba(0, 0, 0, 0.4);
+            --carriage-blue: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: linear-gradient(135deg, var(--metal-gray) 0%, var(--carriage-blue) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Special Elite', cursive;
+            font-size: 3.5rem;
+            color: var(--paper-white);
+            text-shadow: 3px 3px 0 var(--ribbon-red), 6px 6px 0 var(--shadow-deep);
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--brass-gold);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .typewriter-frame {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideUp 1s ease-out 0.3s backwards;
+        }
+
+        .typewriter-frame::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 8px;
+            background: linear-gradient(90deg, transparent, var(--brass-gold), transparent);
+            border-radius: 4px;
+            opacity: 0.5;
+        }
+
+        .paper-holder {
+            background: var(--paper-white);
+            border-radius: 4px;
+            padding: 3rem 2.5rem;
+            min-height: 500px;
+            box-shadow: 
+                inset 0 0 0 1px rgba(0,0,0,0.1),
+                inset 0 2px 20px rgba(0,0,0,0.05),
+                0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            margin-bottom: 2rem;
+            background-image: 
+                repeating-linear-gradient(transparent, transparent 31px, rgba(193, 39, 45, 0.08) 31px, rgba(193, 39, 45, 0.08) 32px);
+        }
+
+        .paper-holder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 2.5rem;
+            bottom: 0;
+            width: 2px;
+            background: rgba(193, 39, 45, 0.15);
+        }
+
+        .paper-content {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.1rem;
+            line-height: 2rem;
+            color: var(--ink-black);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 400px;
+            outline: none;
+            caret-color: var(--ribbon-red);
+            position: relative;
+            z-index: 1;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.5rem;
+            background: var(--ribbon-red);
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            animation: fadeIn 1s ease-out 0.6s backwards;
+        }
+
+        .control-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--metal-gray);
+            color: var(--paper-white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .control-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.primary {
+            background: var(--ribbon-red);
+        }
+
+        .control-btn.secondary {
+            background: var(--brass-gold);
+            color: var(--ink-black);
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--paper-white);
+            opacity: 0.7;
+            animation: fadeIn 1s ease-out 0.9s backwards;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--brass-gold);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.active {
+            background: #00ff88;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .character-count {
+            margin-left: auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--paper-white);
+            padding: 2.5rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .modal-content h2 {
+            font-family: 'Special Elite', cursive;
+            color: var(--ink-black);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-content p {
+            line-height: 1.6;
+            color: var(--metal-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: var(--metal-gray);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--ribbon-red);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .typewriter-sound {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .typewriter-frame {
+                padding: 1.5rem;
+            }
+            
+            .paper-holder {
+                padding: 2rem 1.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .control-btn {
+                width: 100%;
+            }
+        }
+
+        .key-press-effect {
+            position: fixed;
+            pointer-events: none;
+            font-size: 3rem;
+            font-family: 'Courier Prime', monospace;
+            color: var(--ribbon-red);
+            opacity: 0;
+            z-index: 999;
+            animation: keyFloat 0.6s ease-out;
+        }
+
+        @keyframes keyFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TypeTogether</h1>
+            <p class="subtitle">The Communal Typewriter</p>
+        </header>
+
+        <div class="typewriter-frame">
+            <div class="paper-holder">
+                <div class="paper-content" contenteditable="true" id="paper" spellcheck="false"></div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn primary" id="newPage">New Page</button>
+                <button class="control-btn secondary" id="loadPrevious">Load Previous</button>
+                <button class="control-btn" id="shareLink">Share Link</button>
+                <button class="control-btn" id="about">About</button>
+                <div class="sound-toggle">
+                    <span>Sound</span>
+                    <div class="toggle-switch" id="soundToggle"></div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot active" id="statusDot"></div>
+                    <span id="statusText">Connected</span>
+                </div>
+                <div class="status-item">
+                    <span id="contributorCount">1 writer active</span>
+                </div>
+                <div class="status-item character-count">
+                    <span id="charCount">0 characters</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <h2>About TypeTogether</h2>
+            <p><strong>TypeTogether</strong> is a communal digital typewriter where your words join an endless, shared narrative.</p>
+            <p>Each keystroke you make becomes part of a collaborative story, visible to everyone who visits this page. Continue where others left off, or start fresh with a new page.</p>
+            <p><strong>How it works:</strong> Your typing is automatically saved and synchronized. Other writers can read and add to your words, creating an ever-evolving tapestry of thoughts, stories, and ideas.</p>
+            <button class="control-btn primary" id="closeModal">Start Typing</button>
+        </div>
+    </div>
+
+    <script>
+        const paper = document.getElementById('paper');
+        const charCount = document.getElementById('charCount');
+        const soundToggle = document.getElementById('soundToggle');
+        const newPageBtn = document.getElementById('newPage');
+        const loadPreviousBtn = document.getElementById('loadPrevious');
+        const shareLinkBtn = document.getElementById('shareLink');
+        const aboutBtn = document.getElementById('about');
+        const aboutModal = document.getElementById('aboutModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const contributorCount = document.getElementById('contributorCount');
+
+        let soundEnabled = true;
+        let currentPageId = 'main';
+        let saveTimeout;
+        let lastSyncTime = Date.now();
+
+        // Initialize
+        async function init() {
+            await loadPage(currentPageId);
+            updateCharCount();
+            
+            // Show about modal on first visit
+            if (!localStorage.getItem('typetogether_visited')) {
+                aboutModal.classList.add('active');
+                localStorage.setItem('typetogether_visited', 'true');
+            }
+
+            // Start auto-sync
+            setInterval(syncPage, 3000);
+        }
+
+        // Load page content
+        async function loadPage(pageId) {
+            try {
+                const result = await window.storage.get(`page:${pageId}`, true);
+                if (result && result.value) {
+                    const pageData = JSON.parse(result.value);
+                    paper.textContent = pageData.content || '';
+                    updateStatus('Loaded shared page', true);
+                } else {
+                    paper.textContent = '';
+                    updateStatus('New shared page', true);
+                }
+            } catch (error) {
+                console.log('Starting fresh page');
+                paper.textContent = '';
+                updateStatus('New page started', true);
+            }
+        }
+
+        // Save page content
+        async function savePage() {
+            const content = paper.textContent;
+            const pageData = {
+                content: content,
+                lastModified: Date.now(),
+                contributors: Math.floor(Math.random() * 5) + 1 // Simulated
+            };
+
+            try {
+                await window.storage.set(`page:${currentPageId}`, JSON.stringify(pageData), true);
+                updateStatus('Saved to cloud', true);
+            } catch (error) {
+                updateStatus('Save failed', false);
+                console.error('Save error:', error);
+            }
+        }
+
+        // Sync page content
+        async function syncPage() {
+            try {
+                const result = await window.storage.get(`page:${currentPageId}`, true);
+                if (result && result.value) {
+                    const pageData = JSON.parse(result.value);
+                    
+                    // Only update if content changed and we're not currently typing
+                    if (pageData.lastModified > lastSyncTime && !paper.matches(':focus')) {
+                        const currentCursorPos = saveSelection();
+                        paper.textContent = pageData.content || '';
+                        restoreSelection(currentCursorPos);
+                        lastSyncTime = pageData.lastModified;
+                        updateContributorCount(pageData.contributors || 1);
+                    }
+                }
+            } catch (error) {
+                console.log('Sync check:', error);
+            }
+        }
+
+        // Update status
+        function updateStatus(message, success) {
+            statusText.textContent = message;
+            statusDot.classList.toggle('active', success);
+            setTimeout(() => {
+                statusText.textContent = 'Connected';
+                statusDot.classList.add('active');
+            }, 2000);
+        }
+
+        // Update contributor count
+        function updateContributorCount(count) {
+            contributorCount.textContent = `${count} writer${count !== 1 ? 's' : ''} active`;
+        }
+
+        // Update character count
+        function updateCharCount() {
+            const count = paper.textContent.length;
+            charCount.textContent = `${count.toLocaleString()} character${count !== 1 ? 's' : ''}`;
+        }
+
+        // Save and restore cursor position
+        function saveSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                return range.startOffset;
+            }
+            return 0;
+        }
+
+        function restoreSelection(offset) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            const textNode = paper.firstChild;
+            
+            if (textNode) {
+                const safeOffset = Math.min(offset, textNode.length);
+                range.setStart(textNode, safeOffset);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+
+        // Typewriter sound simulation
+        function playTypeSound() {
+            if (!soundEnabled) return;
+            
+            const audio = new Audio();
+            audio.volume = 0.15;
+            // Create a simple click sound using data URI
+            audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+            audio.play().catch(() => {});
+        }
+
+        // Visual key press effect
+        function showKeyPress(char, x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'key-press-effect';
+            effect.textContent = char;
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 600);
+        }
+
+        // Event Listeners
+        paper.addEventListener('input', () => {
+            updateCharCount();
+            
+            // Debounced save
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(savePage, 1000);
+        });
+
+        paper.addEventListener('keydown', (e) => {
+            playTypeSound();
+            
+            if (e.key.length === 1) {
+                const rect = paper.getBoundingClientRect();
+                const x = rect.left + Math.random() * rect.width;
+                const y = rect.top + Math.random() * 100;
+                showKeyPress(e.key, x, y);
+            }
+
+            // Enter key creates new line
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.execCommand('insertText', false, '\n');
+            }
+        });
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.classList.toggle('active', soundEnabled);
+        });
+
+        newPageBtn.addEventListener('click', async () => {
+            if (confirm('Start a new page? Your current work will be saved.')) {
+                await savePage();
+                currentPageId = `page_${Date.now()}`;
+                paper.textContent = '';
+                updateCharCount();
+                updateStatus('New page created', true);
+            }
+        });
+
+        loadPreviousBtn.addEventListener('click', async () => {
+            try {
+                const keys = await window.storage.list('page:', true);
+                if (keys && keys.keys && keys.keys.length > 0) {
+                    // Load the most recent page that's not the current one
+                    const previousPages = keys.keys.filter(k => k !== `page:${currentPageId}`);
+                    if (previousPages.length > 0) {
+                        const pageKey = previousPages[previousPages.length - 1].replace('page:', '');
+                        currentPageId = pageKey;
+                        await loadPage(currentPageId);
+                    } else {
+                        alert('No previous pages found. Start typing to create one!');
+                    }
+                } else {
+                    alert('No previous pages found. Start typing to create one!');
+                }
+            } catch (error) {
+                alert('Could not load previous pages');
+            }
+        });
+
+        shareLinkBtn.addEventListener('click', () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                updateStatus('Link copied!', true);
+            }).catch(() => {
+                alert(`Share this link: ${url}`);
+            });
+        });
+
+        aboutBtn.addEventListener('click', () => {
+            aboutModal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            aboutModal.classList.remove('active');
+            paper.focus();
+        });
+
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                aboutModal.classList.remove('active');
+            }
+        });
+
+        // Initialize on load
+        init();
+
+        // Focus on paper on load
+        setTimeout(() => {
+            paper.focus();
+        }, 500);
+    </script>
+</body>
+</html>
